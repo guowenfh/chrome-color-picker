@@ -108,7 +108,7 @@ export default {
           this.wrapStyle.display = 'block'
 
           this.ctx = this.$canvas.getContext('2d')
-          this.ctx.drawImage(img, 0, 0)
+          this.ctx.drawImage(img, 0, 0, this.imgStyles.width, this.imgStyles.height)
           this.$canvas.addEventListener('mousemove', this.mousemove)
           this.$canvas.addEventListener('click', this.click)
         })
