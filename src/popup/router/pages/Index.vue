@@ -8,27 +8,25 @@
 </template>
 
 <script>
-
 import { Chrome } from 'vue-color'
 export default {
-  components:{
-    'chrome-picker' : Chrome ,
+  components: {
+    'chrome-picker': Chrome
   },
-  data () {
+  data() {
     return {
-      colors:{ r: 255, g: 0, b: 0 }
+      colors: { r: 255, g: 0, b: 0 }
     }
   },
-  mounted () {
+  mounted() {
     browser.runtime.sendMessage({})
   },
-  methods:{
-    click(){
-      chrome.tabs.captureVisibleTab(null, {}, function (image) {
-        console.error('----',image)
-    // You can add that image HTML5 canvas, or Element.
-  });
-
+  methods: {
+    click() {
+      chrome.tabs.captureVisibleTab(null, {}, function(image) {
+        console.error('----', image)
+        // You can add that image HTML5 canvas, or Element.
+      })
     }
   }
 }

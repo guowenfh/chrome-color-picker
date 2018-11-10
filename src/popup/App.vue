@@ -1,12 +1,10 @@
 <template>
-  <div>
-    <router-view></router-view>
-  </div>
+  <div><router-view></router-view></div>
 </template>
 
 <script>
 export default {
-  data () {
+  data() {
     return {}
   }
 }
@@ -14,7 +12,7 @@ export default {
 
 <style>
 html {
-    width: 400px;
-    height: 400px;
+  width: 400px;
+  height: 400px;
 }
 </style>
