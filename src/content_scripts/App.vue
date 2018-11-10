@@ -1,14 +1,22 @@
 <template>
   <div :style="wrapStyle" id="color-picker-wrap" ref="pickWrap">
     <table :style="rgbaArea">
-      <tr v-for="(item, index) in matrix" :key="'label' + index" style="display:flex;">
-        <td v-for="xyItem in item" :key="xyItem.x + '-' + xyItem.y" v-bind:style="{
-              backgroundColor: xyItem.backgroundColor,
-              height: '8px',
-              width: '8px',
-              boxShadow: `0 0px 0px 1px ${xyItem.isActive ? 'red' : '#ddd'}`,
-              zIndex: `${xyItem.isActive ? 1 : 0}`
-            }" />
+      <tr
+        v-for="(item, index) in matrix"
+        :key="'label' + index"
+        style="display:flex;"
+      >
+        <td
+          v-for="xyItem in item"
+          :key="xyItem.x + '-' + xyItem.y"
+          v-bind:style="{
+            backgroundColor: xyItem.backgroundColor,
+            height: '8px',
+            width: '8px',
+            boxShadow: `0 0px 0px 1px ${xyItem.isActive ? 'red' : '#ddd'}`,
+            zIndex: `${xyItem.isActive ? 1 : 0}`
+          }"
+        />
       </tr>
     </table>
   </div>
@@ -16,7 +24,7 @@
 
 <script>
 import { loadImage, chunks } from '../common'
-import crosshairPng from './crosshair.png';
+import crosshairPng from './crosshair.png'
 function pixelToRgba(data = []) {
   const rgba = `rgba(${data[0]}, ${data[1]}, ${data[2]}, ${data[3] / 255})`
   return rgba
@@ -102,13 +110,21 @@ export default {
             width: Math.floor(img.width / window.devicePixelRatio)
           }
           this.rednerCanvas(this.$canvas, this.imgStyles)
+
           this.$canvas.style = `cursor:${this.cursor}`
           this.wrapStyle.height = `${this.imgStyles.height}px`
           this.wrapStyle.width = `${this.imgStyles.width}px`
           this.wrapStyle.display = 'block'
 
           this.ctx = this.$canvas.getContext('2d')
-          this.ctx.drawImage(img, 0, 0, this.imgStyles.width, this.imgStyles.height)
+
+          this.ctx.drawImage(
+            img,
+            0,
+            0,
+            this.imgStyles.width,
+            this.imgStyles.height
+          )
           this.$canvas.addEventListener('mousemove', this.mousemove)
           this.$canvas.addEventListener('click', this.click)
         })
