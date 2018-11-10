@@ -1,7 +1,5 @@
 <template>
   <div>
-    <p>Hello world!</p>
-
     <chrome-picker v-model="colors" />
     <button @click="click">取色</button>
   </div>

@@ -103,7 +103,6 @@ export default {
           }
           this.rednerCanvas(this.$canvas, this.imgStyles)
           this.$canvas.style = `cursor:${this.cursor}`
-          document.body.style = `cursor:${this.cursor}`
           this.wrapStyle.height = `${this.imgStyles.height}px`
           this.wrapStyle.width = `${this.imgStyles.width}px`
           this.wrapStyle.display = 'block'

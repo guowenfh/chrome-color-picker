@@ -20,10 +20,10 @@
     "@vue/cli-service": "^3.1.1",
     "@vue/eslint-config-prettier": "^4.0.0",
     "babel-eslint": "^10.0.1",
-    "eslint": "^5.8.0",
+    "eslint": "^5.9.0",
     "eslint-plugin-vue": "^5.0.0-0",
     "imports-loader": "^0.8.0",
-    "lint-staged": "^7.2.2",
+    "lint-staged": "^8.0.4",
     "vue-cli-plugin-browser-extension": "^0.12.1",
     "vue-template-compiler": "^2.5.17"
   },
