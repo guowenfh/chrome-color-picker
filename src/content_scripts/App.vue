@@ -1,24 +1,22 @@
 <template>
-  <div>
-    <div :style="wrapStyle" id="color-picker-wrap" ref="pickWrap">
-      <table :style="rgbaArea">
-        <tr v-for="(item, index) in matrix" :key="'label' + index" style="display:flex;">
-          <td v-for="xyItem in item" :key="xyItem.x + '-' + xyItem.y" v-bind:style="{
+  <div :style="wrapStyle" id="color-picker-wrap" ref="pickWrap">
+    <table :style="rgbaArea">
+      <tr v-for="(item, index) in matrix" :key="'label' + index" style="display:flex;">
+        <td v-for="xyItem in item" :key="xyItem.x + '-' + xyItem.y" v-bind:style="{
               backgroundColor: xyItem.backgroundColor,
               height: '8px',
               width: '8px',
               boxShadow: `0 0px 0px 1px ${xyItem.isActive ? 'red' : '#ddd'}`,
               zIndex: `${xyItem.isActive ? 1 : 0}`
             }" />
-        </tr>
-      </table>
-    </div>
+      </tr>
+    </table>
   </div>
 </template>
 
 <script>
 import { loadImage, chunks } from '../common'
-
+import crosshairPng from './crosshair.png';
 function pixelToRgba(data = []) {
   const rgba = `rgba(${data[0]}, ${data[1]}, ${data[2]}, ${data[3] / 255})`
   return rgba
@@ -38,8 +36,7 @@ export default {
         width: 0,
         height: 0
       },
-      cursor:
-        'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABcAAAAXCAYAAADgKtSgAAAAAXNSR0IArs4c6QAAAblJREFUSA3dVMtKw1AQzWsj/oULA0GD+AFacGshSat7/Qw3uvIzdG8pCcStWPoBUlQodeFfFFdJPCfckds8JIouNFBm7syZM3PnztQ2On5RFF24rnvveZ45n88nXcKsLqDvYv45eRiGW3me77I9lDx3aZX5GWgwGGyA7Looir0qzjTNqWVZJ+Px+LXqk3MreRAExwBd4bcu4Aa5hO00SZKbBp/RSM6Ksyx7REBJjCrfoN/hBgvoLvQD6GuKcGnbtt90A0cBVgRbAYMQM8lRHMcvAkLPN5FkhAQ+cQq/L36Rtcr5WAh6IkBVvKMTSyATQJ/JDYDdBu5Z/JTmcDjsIXNPjNA5FX2eEXCLgFIXvy6RIAX5obKleOAH8UOfOCTG71yMukTgQj9XdeUX8j54VgpxmEEPqlTOx2v9cDMXCcRfq/xXe177b+GjoKIpy0FVHLeRejyp0FBnTks5jsRXH5PgxlHk5smcg8BH8AyErXNO/EdmTam1RXw/saG1tgg5V5qbJy0Su0ja6W9bfeJaKxcSSrSEi3UJlaOWgvisqcfE6l9r5TqIROhruSCUXYgZ34lcT/QV/e+SvwPjb9Vawp+KUwAAAABJRU5ErkJggg==") 16 16, crosshair;',
+      cursor: `url(${crosshairPng}) 12 12, crosshair;`,
       rgbaArea: {
         borderRadius: '50%',
         overflow: 'hidden',
