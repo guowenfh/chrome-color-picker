@@ -3,13 +3,12 @@
 </template>
 
 <script>
-
 export default {
-  data () {
+  data() {
     return {}
   },
-  mounted () {
-    browser.runtime.sendMessage({});
+  mounted() {
+    browser.runtime.sendMessage({})
   }
 }
 </script>
