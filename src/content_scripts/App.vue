@@ -4,12 +4,16 @@
       <div :style="rgbaArea">
         <div v-for="(item, index) in matrix" :key="'label' + index">
           <div v-if="item.length" style="width:100px;display:flex;">
-            <div v-for="xyItem in item" :key="xyItem.x + '-' + xyItem.y" v-bind:style="{
+            <div
+              v-for="xyItem in item"
+              :key="xyItem.x + '-' + xyItem.y"
+              v-bind:style="{
                 backgroundColor: xyItem.backgroundColor,
                 height: '10px',
-                width:'10px',
+                width: '10px',
                 border: `1px solid ${xyItem.isActive ? 'red' : '#ddd'}`
-              }"></div>
+              }"
+            ></div>
           </div>
         </div>
       </div>
@@ -53,7 +57,7 @@ export default {
       },
       mousePos: { x: -1, y: -1 },
       ctx: null,
-      $canvas:null,
+      $canvas: null
     }
   },
   computed: {},
@@ -68,8 +72,8 @@ export default {
       const x = ev.clientX
       const y = ev.clientY
 
-      this.rgbaArea.top = `${y+10}px`
-      this.rgbaArea.left = `${x+10}px`
+      this.rgbaArea.top = `${y + 10}px`
+      this.rgbaArea.left = `${x + 10}px`
       const matrix = getRectPoint(x, y, 5)
       const list = matrix.map(arr => {
         return arr.map(item => {
@@ -113,8 +117,8 @@ export default {
             (this.wrapStyle.display = 'block'),
             (this.ctx = this.$canvas.getContext('2d'))
           this.ctx.drawImage(img, 0, 0)
-          this.$canvas.addEventListener('mousemove',this.mousemove)
-          this.$canvas.addEventListener('click',this.click)
+          this.$canvas.addEventListener('mousemove', this.mousemove)
+          this.$canvas.addEventListener('click', this.click)
         })
       }
       sendResponse('我收到你的消息了：' + JSON.stringify(request))
