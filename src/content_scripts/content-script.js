@@ -2,7 +2,6 @@ console.log('Hello from the content-script')
 
 import Vue from 'vue'
 import App from './App'
-
 // 注意，必须设置了run_at=document_start 此段代码才会生效
 console.time('-----')
 document.addEventListener('DOMContentLoaded', function() {
