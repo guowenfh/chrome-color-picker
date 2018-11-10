@@ -8,6 +8,7 @@
 </template>
 
 <script>
+import {sendMessageToContentScript} from '../../../common.js'
 import { Chrome } from 'vue-color'
 export default {
   components: {
@@ -19,14 +20,16 @@ export default {
     }
   },
   mounted() {
-    browser.runtime.sendMessage({})
   },
   methods: {
     click() {
       chrome.tabs.captureVisibleTab(null, {}, function(image) {
-        console.error('----', image)
-        // You can add that image HTML5 canvas, or Element.
+      sendMessageToContentScript({cmd:'colorPicker',data:{src:image}}, function(response){
+        console.log('-----发送 colorPicker',response)
       })
+      // You can add that image HTML5 canvas, or Element.
+    })
+
     }
   }
 }
