@@ -25,7 +25,13 @@
         type="text"
         :value="activeHax"
         id="color-picker-input"
-        :style="{ cursor: 'auto' }"
+        :style="{
+          cursor: 'auto',
+          marginTop: '12px',
+          width: '110px',
+          borderRadius: '4px',
+          border: '1px solid #ddd'
+        }"
       />
       <span
         v-if="showChoseBtn"
@@ -34,7 +40,7 @@
           width: '20px',
           position: 'absolute',
           top: 0,
-          right: '7px',
+          right: '-7px',
           cursor: 'pointer',
           background: `url(${closePng}) center center`,
           'background-size': '100% 100%'
@@ -46,7 +52,7 @@
 </template>
 
 <script>
-import { loadImage, chunks } from '../common'
+import { loadImage, chunks, sendMessageToContentScript } from '../common'
 import crosshairPng from './crosshair.png'
 import closePng from './close2x.png'
 function pixelToRgba(data = []) {
@@ -154,6 +160,24 @@ export default {
         const $input = document.getElementById('color-picker-input')
         if ($input) {
           $input.focus()
+          $input.select()
+          document.execCommand('copy')
+          localStorage.setItem('color-picker-select-color', this.activeHax)
+          try {
+            const isCopy = localStorage.getItem('color-picker-is-copy')
+            if (JSON.parse(isCopy) !== true) return
+            sendMessageToContentScript(
+              {
+                cmd: 'color-picker-select-color',
+                data: { color: this.activeHax }
+              },
+              function(response) {
+                console.log('-----color-picker-select-color', response)
+              }
+            )
+          } catch (e) {
+            console.error(e)
+          }
         }
         return
       }
@@ -168,7 +192,7 @@ export default {
         this.$pickImage.removeEventListener('click', this.click)
         this.$pickImage.parentNode.removeChild(this.$pickImage)
       }
-      document.removeEventListener('keyup', this.keyup)
+      window.removeEventListener('keyup', this.keyup)
       this.$canvas = null
       this.ctx = null
       this.showChoseBtn = false
@@ -176,51 +200,59 @@ export default {
     },
     keyup(ev) {
       // ESC 键
-      console.log('----', ev.keyCode === 27)
       if (ev.keyCode === 27) {
         this.close()
       }
+    },
+
+    onMessage() {
+      chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        sendResponse('我收到你的消息了：' + JSON.stringify(request))
+        if (request.cmd == 'color-picker-close') {
+          console.error('-------')
+          this.close()
+          return
+        }
+        if (request.cmd == 'color-picker-open') {
+          if (this.isInit) return
+          loadImage(request.data.src, img => {
+            this.imgStyles = {
+              height: Math.floor(img.height / window.devicePixelRatio),
+              width: Math.floor(img.width / window.devicePixelRatio)
+            }
+            img.id = 'color-picker-image'
+            img.style = `margin: 0px;padding: 0px;overflow: hidden;max-width: none !important;max-height: none !important;visibility: visible;width: ${
+              this.imgStyles.width
+            }px;height: auto;cursor:${this.cursor}`
+            this.$refs.pickWrap.appendChild(img)
+            this.$pickImage = img
+            this.rednerCanvas()
+            this.wrapStyle.height = `${this.imgStyles.height}px`
+            this.wrapStyle.width = `${this.imgStyles.width}px`
+            this.wrapStyle.display = 'block'
+
+            this.ctx.drawImage(
+              img,
+              0,
+              0,
+              this.imgStyles.width,
+              this.imgStyles.height
+            )
+            this.$pickImage.addEventListener('mousemove', this.mousemove)
+            this.$pickImage.addEventListener('click', this.click)
+            window.addEventListener('keyup', this.keyup)
+            this.isInit = true
+          })
+        }
+      })
     }
   },
   destroyed() {
     this.close()
   },
   mounted() {
-    document.addEventListener('keyup', this.keyup)
     // 接收来自后台的消息
-    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      if (request.cmd == 'colorPicker') {
-        if (this.isInit) return
-        loadImage(request.data.src, img => {
-          this.imgStyles = {
-            height: Math.floor(img.height / window.devicePixelRatio),
-            width: Math.floor(img.width / window.devicePixelRatio)
-          }
-          img.id = 'color-picker-image'
-          img.style = `margin: 0px;padding: 0px;overflow: hidden;max-width: none !important;max-height: none !important;visibility: visible;width: ${
-            this.imgStyles.width
-          }px;height: auto;cursor:${this.cursor}`
-          this.$refs.pickWrap.appendChild(img)
-          this.$pickImage = img
-          this.rednerCanvas()
-          this.wrapStyle.height = `${this.imgStyles.height}px`
-          this.wrapStyle.width = `${this.imgStyles.width}px`
-          this.wrapStyle.display = 'block'
-
-          this.ctx.drawImage(
-            img,
-            0,
-            0,
-            this.imgStyles.width,
-            this.imgStyles.height
-          )
-          this.$pickImage.addEventListener('mousemove', this.mousemove)
-          this.$pickImage.addEventListener('click', this.click)
-          this.isInit = true
-        })
-      }
-      sendResponse('我收到你的消息了：' + JSON.stringify(request))
-    })
+    this.onMessage()
   }
 }
 </script>
