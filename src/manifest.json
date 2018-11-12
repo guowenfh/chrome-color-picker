@@ -1,13 +1,22 @@
 {
   "manifest_version": 2,
   "name": "chrome-color-picker",
-  "description": "A Vue Browser Extension",
+  "version": "2018.11.1112",
+  "description": "一款 chrome 调试器风格的取色器插件 ",
   "icons": {
     "16": "icons/16.png",
     "48": "icons/48.png",
     "128": "icons/128.png"
   },
-  "permissions": ["tabs", "activeTab", "<all_urls>", "clipboardWrite", "storage", "contextMenus", "*://*/*"],
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "<all_urls>",
+    "clipboardWrite",
+    "storage",
+    "contextMenus",
+    "*://*/*"
+  ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

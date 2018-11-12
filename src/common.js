@@ -40,7 +40,7 @@ export function executeScriptToCurrentTab(code) {
  */
 export function captureVisibleTab() {
   return new Promise(resolve => {
-    chrome.tabs.captureVisibleTab(null, {}, function(image) {
+    chrome.tabs.captureVisibleTab(null, { format: 'png' }, function(image) {
       resolve(image)
     })
   })

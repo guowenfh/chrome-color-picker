@@ -2,40 +2,25 @@
   <div :style="wrapStyle" id="color-picker-wrap" ref="pickWrap">
     <div :style="position" v-if="isInit">
       <table :style="rgbaArea">
-        <tr
-          v-for="(item, index) in matrix"
-          :key="'label' + index"
-          style="display:flex;"
-        >
-          <td
-            v-for="xyItem in item"
-            :key="xyItem.x + '-' + xyItem.y"
-            v-bind:style="{
+        <tr v-for="(item, index) in matrix" :key="'label' + index" style="display:flex;">
+          <td v-for="xyItem in item" :key="xyItem.x + '-' + xyItem.y" v-bind:style="{
               backgroundColor: xyItem.backgroundColor,
               height: '8px',
               width: '8px',
               boxShadow: `0 0px 0px 1px ${xyItem.isActive ? 'red' : '#ddd'}`,
               zIndex: `${xyItem.isActive ? 1 : 0}`
-            }"
-          />
+            }" />
         </tr>
       </table>
 
-      <input
-        type="text"
-        :value="activeHax"
-        id="color-picker-input"
-        :style="{
+      <input type="text" :value="activeHax" id="color-picker-input" :style="{
           cursor: 'auto',
           marginTop: '12px',
           width: '110px',
           borderRadius: '4px',
           border: '1px solid #ddd'
-        }"
-      />
-      <span
-        v-if="showChoseBtn"
-        :style="{
+        }" />
+      <span v-if="showChoseBtn" :style="{
           height: '20px',
           width: '20px',
           position: 'absolute',
@@ -44,9 +29,7 @@
           cursor: 'pointer',
           background: `url(${closePng}) center center`,
           'background-size': '100% 100%'
-        }"
-        @click="close"
-      ></span>
+        }" @click="close"></span>
     </div>
   </div>
 </template>
@@ -94,9 +77,19 @@ function pixelToRgba(data = []) {
     b
   }
 }
+// function componentToHex(c) {
+//     var hex = c.toString(16);
+//     return hex.length == 1 ? "0" + hex : hex;
+// }
+
+// function rgbToHex(r, g, b) {
+//     return componentToHex(r) + componentToHex(g) + componentToHex(b);
+// }
 function rgbToHex(r, g, b) {
   return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)
 }
+// const MATRIXSIZE = 11 // 需要显示的网格大小
+// const matrixInitArr = [...Array(11)]
 export default {
   data() {
     return {
@@ -146,6 +139,37 @@ export default {
       this.$canvas.style.display = 'none'
       // this.$refs.pickWrap.appendChild(this.$canvas)
     },
+    // 这个性能差很多
+    /*     mousemove2(ev) {
+      requestAnimFrame(() => {
+        const clientX = ev.clientX
+        const clientY = ev.clientY
+        this.position.top = `${clientY + 10}px`
+        this.position.left = `${clientX + 10}px`
+        this.position.pointerEvents = 'none'
+        const originX = clientX - 5
+        const originY = clientY - 5
+        this.matrix = matrixInitArr.map((yItem, yIndex) => {
+          return matrixInitArr.map((xItem, xIndex) => {
+            const x = originX + xIndex
+            const y = originY + yIndex
+            const isActive = clientX === x && clientY === y
+            const imageData = this.ctx.getImageData(x, y, 1, 1).data
+            const rgba = pixelToRgba(imageData)
+            if (isActive) {
+              this.activeHax = rgbToHex(rgba.r, rgba.g, rgba.b)
+              console.log(rgba.r, rgba.g, rgba.b)
+            }
+            return {
+              x,
+              y,
+              isActive: isActive,
+              backgroundColor: rgba.rgba
+            }
+          })
+        })
+      })
+    }, */
     mousemove(ev) {
       requestAnimFrame(() => {
         const clientX = ev.clientX

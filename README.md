@@ -1,35 +1,26 @@
 # chrome-color-picker
 
+使用 @vue/cli3 + vue-cli-plugin-browser-extension + vue-color + ant-design-vue 驱动的 chrome 调试器风格的取色器插件。
+
 ## Project setup
 
 ```
 yarn install
+yarn run serve # dev 调试
+yarn run build # 打包
+yarn run lint  # 代码风格检查
 ```
 
-### Compiles and hot-reloads for development
+页面截图
 
-```
-yarn run serve
-```
+1.弹出层
 
-### Compiles and minifies for production
+![pouup](./demo/popup.png)
 
-```
-yarn run build
-```
+2.右键菜单
 
-### Run your tests
+![contextMenu](./demo/contextMenu.png)
 
-```
-yarn run test
-```
+3.移动取色器
 
-### Lints and fixes files
-
-```
-yarn run lint
-```
-
-### Customize configuration
-
-See [Configuration Reference](https://cli.vuejs.org/config/).
+![active](./demo/active.png)
