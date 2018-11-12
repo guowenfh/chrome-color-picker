@@ -2,25 +2,40 @@
   <div :style="wrapStyle" id="color-picker-wrap" ref="pickWrap">
     <div :style="position" v-if="isInit">
       <table :style="rgbaArea">
-        <tr v-for="(item, index) in matrix" :key="'label' + index" style="display:flex;">
-          <td v-for="xyItem in item" :key="xyItem.x + '-' + xyItem.y" v-bind:style="{
+        <tr
+          v-for="(item, index) in matrix"
+          :key="'label' + index"
+          style="display:flex;"
+        >
+          <td
+            v-for="xyItem in item"
+            :key="xyItem.x + '-' + xyItem.y"
+            v-bind:style="{
               backgroundColor: xyItem.backgroundColor,
               height: '8px',
               width: '8px',
               boxShadow: `0 0px 0px 1px ${xyItem.isActive ? 'red' : '#ddd'}`,
               zIndex: `${xyItem.isActive ? 1 : 0}`
-            }" />
+            }"
+          />
         </tr>
       </table>
 
-      <input type="text" :value="activeHax" id="color-picker-input" :style="{
+      <input
+        type="text"
+        :value="activeHax"
+        id="color-picker-input"
+        :style="{
           cursor: 'auto',
           marginTop: '12px',
           width: '110px',
           borderRadius: '4px',
           border: '1px solid #ddd'
-        }" />
-      <span v-if="showChoseBtn" :style="{
+        }"
+      />
+      <span
+        v-if="showChoseBtn"
+        :style="{
           height: '20px',
           width: '20px',
           position: 'absolute',
@@ -29,7 +44,9 @@
           cursor: 'pointer',
           background: `url(${closePng}) center center`,
           'background-size': '100% 100%'
-        }" @click="close"></span>
+        }"
+        @click="close"
+      ></span>
     </div>
   </div>
 </template>
@@ -77,19 +94,9 @@ function pixelToRgba(data = []) {
     b
   }
 }
-// function componentToHex(c) {
-//     var hex = c.toString(16);
-//     return hex.length == 1 ? "0" + hex : hex;
-// }
-
-// function rgbToHex(r, g, b) {
-//     return componentToHex(r) + componentToHex(g) + componentToHex(b);
-// }
 function rgbToHex(r, g, b) {
   return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)
 }
-// const MATRIXSIZE = 11 // 需要显示的网格大小
-// const matrixInitArr = [...Array(11)]
 export default {
   data() {
     return {
@@ -171,6 +178,7 @@ export default {
       })
     }, */
     mousemove(ev) {
+      ev.stopPropagation()
       requestAnimFrame(() => {
         const clientX = ev.clientX
         const clientY = ev.clientY
@@ -207,7 +215,7 @@ export default {
       if (!this.showChoseBtn) {
         this.showChoseBtn = true
         this.position.pointerEvents = 'initial'
-        this.$pickImage.removeEventListener('mousemove', this.mousemove)
+        document.removeEventListener('mousemove', this.mousemove)
         const $input = document.getElementById('color-picker-input')
         if ($input) {
           $input.focus()
@@ -245,17 +253,17 @@ export default {
         }
         return
       }
-      this.$pickImage.addEventListener('mousemove', this.mousemove)
+      document.addEventListener('mousemove', this.mousemove)
       this.$pickImage.addEventListener('click', this.click)
       this.mousemove(ev)
       this.showChoseBtn = false
     },
     close() {
       if (this.$pickImage) {
-        this.$pickImage.removeEventListener('mousemove', this.mousemove)
         this.$pickImage.removeEventListener('click', this.click)
         this.$pickImage.parentNode.removeChild(this.$pickImage)
       }
+      document.removeEventListener('mousemove', this.mousemove)
       window.removeEventListener('keyup', this.keyup)
       this.$canvas = null
       this.ctx = null
@@ -304,7 +312,7 @@ export default {
               this.imgStyles.width,
               this.imgStyles.height
             )
-            this.$pickImage.addEventListener('mousemove', this.mousemove)
+            document.addEventListener('mousemove', this.mousemove)
             this.$pickImage.addEventListener('click', this.click)
             window.addEventListener('keyup', this.keyup)
             document.body.style = `cursor:${this.cursor} overflow: hidden;`
