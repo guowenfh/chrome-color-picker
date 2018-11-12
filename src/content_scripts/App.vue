@@ -52,9 +52,36 @@
 </template>
 
 <script>
-import { loadImage, chunks, sendMessageToContentScript } from '../common'
+import {
+  loadImage,
+  chunks,
+  sendMessageToBackground,
+  getDefaultColor
+} from '../common'
 import crosshairPng from './crosshair.png'
 import closePng from './close2x.png'
+
+var _requestAnimFrame =
+  window.requestAnimationFrame ||
+  window.webkitRequestAnimationFrame ||
+  window.mozRequestAnimationFrame ||
+  window.oRequestAnimationFrame ||
+  window.msRequestAnimationFrame ||
+  function(callback) {
+    window.setTimeout(callback, 1000 / 60)
+  }
+
+/**
+ * requestAnimationFrame polyfill based on http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+ * In order to get a precise start time, `requestAnimFrame` should be called as an entry into the method
+ * @memberOf fabric.util
+ * @param {Function} callback Callback to invoke
+ * @param {DOMElement} element optional Element to associate with animation
+ */
+export function requestAnimFrame() {
+  return _requestAnimFrame.apply(window, arguments)
+}
+
 function pixelToRgba(data = []) {
   const r = data[0]
   const g = data[1]
@@ -120,7 +147,7 @@ export default {
       // this.$refs.pickWrap.appendChild(this.$canvas)
     },
     mousemove(ev) {
-      requestAnimationFrame(() => {
+      requestAnimFrame(() => {
         const clientX = ev.clientX
         const clientY = ev.clientY
         this.position.top = `${clientY + 10}px`
@@ -152,7 +179,7 @@ export default {
         })
       })
     },
-    click(ev) {
+    async click(ev) {
       if (!this.showChoseBtn) {
         this.showChoseBtn = true
         this.position.pointerEvents = 'initial'
@@ -161,20 +188,33 @@ export default {
         if ($input) {
           $input.focus()
           $input.select()
-          document.execCommand('copy')
-          localStorage.setItem('color-picker-select-color', this.activeHax)
           try {
-            const isCopy = localStorage.getItem('color-picker-is-copy')
-            if (JSON.parse(isCopy) !== true) return
-            sendMessageToContentScript(
+            const data = await sendMessageToBackground(
+              'color-picker-cache-get',
               {
-                cmd: 'color-picker-select-color',
-                data: { color: this.activeHax }
-              },
-              function(response) {
-                console.log('-----color-picker-select-color', response)
+                key: 'color-picker-color-list'
               }
             )
+            let colorList = JSON.parse(data)
+            colorList = colorList === null ? getDefaultColor() : colorList
+            colorList.unshift(this.activeHax)
+            colorList = [...new Set(colorList)]
+            if (colorList.length > 16) {
+              colorList.pop()
+            }
+            const isCopy = await sendMessageToBackground(
+              'color-picker-cache-get',
+              {
+                key: 'color-picker-is-copy'
+              }
+            )
+            if (JSON.parse(isCopy) !== true) return
+            document.execCommand('copy')
+            // localStorage.setItem('color-picker-color-list', JSON.stringify(colorList))
+            await sendMessageToBackground('color-picker-cache-set', {
+              key: 'color-picker-color-list',
+              value: JSON.stringify(colorList)
+            })
           } catch (e) {
             console.error(e)
           }
@@ -197,6 +237,8 @@ export default {
       this.ctx = null
       this.showChoseBtn = false
       this.isInit = false
+      document.body.style = ''
+      this.wrapStyle.display = 'none'
     },
     keyup(ev) {
       // ESC 键
@@ -215,6 +257,7 @@ export default {
         }
         if (request.cmd == 'color-picker-open') {
           if (this.isInit) return
+          document.body.cursor = 'wait'
           loadImage(request.data.src, img => {
             this.imgStyles = {
               height: Math.floor(img.height / window.devicePixelRatio),
@@ -223,14 +266,13 @@ export default {
             img.id = 'color-picker-image'
             img.style = `margin: 0px;padding: 0px;overflow: hidden;max-width: none !important;max-height: none !important;visibility: visible;width: ${
               this.imgStyles.width
-            }px;height: auto;cursor:${this.cursor}`
+            }px;height: auto;`
             this.$refs.pickWrap.appendChild(img)
             this.$pickImage = img
             this.rednerCanvas()
             this.wrapStyle.height = `${this.imgStyles.height}px`
             this.wrapStyle.width = `${this.imgStyles.width}px`
             this.wrapStyle.display = 'block'
-
             this.ctx.drawImage(
               img,
               0,
@@ -241,6 +283,7 @@ export default {
             this.$pickImage.addEventListener('mousemove', this.mousemove)
             this.$pickImage.addEventListener('click', this.click)
             window.addEventListener('keyup', this.keyup)
+            document.body.style = `cursor:${this.cursor} overflow: hidden;`
             this.isInit = true
           })
         }

@@ -14,10 +14,35 @@ export function sendMessageToContentScript(message, callback) {
   })
 }
 
+/**
+ * 从页面内容主动发送名单到后台等
+ * @param {String}cmd 命令名称
+ * @param {Object}data 数据
+ * @param {Promise}cb 返回值
+ */
+export function sendMessageToBackground(cmd, data) {
+  return new Promise(resolve => {
+    chrome.runtime.sendMessage({ cmd, data }, function(response) {
+      resolve(response)
+    })
+  })
+}
 // 向content-script注入JS片段
 export function executeScriptToCurrentTab(code) {
   getCurrentTabId(tabId => {
     chrome.tabs.executeScript(tabId, { code: code })
+  })
+}
+
+/**
+ * 将当前页面截图
+ * @returns {Promise<any>}
+ */
+export function captureVisibleTab() {
+  return new Promise(resolve => {
+    chrome.tabs.captureVisibleTab(null, {}, function(image) {
+      resolve(image)
+    })
   })
 }
 
@@ -99,4 +124,25 @@ export function getRectPoint(x, y, offset = 5) {
     }))
   })
   return matrix
+}
+
+export function getDefaultColor() {
+  return [
+    '4D4D4D',
+    '999999',
+    'FFFFFF',
+    'F44E3B',
+    'FE9200',
+    'FCDC00',
+    'DBDF00',
+    'A4DD00',
+    '68CCCA',
+    '73D8FF',
+    'AEA1FF',
+    'FDA1FF',
+    '333333',
+    '808080',
+    'CCCCCC',
+    'D33115'
+  ]
 }
