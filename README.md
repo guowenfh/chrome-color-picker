@@ -11,7 +11,7 @@ yarn run build # 打包
 yarn run lint  # 代码风格检查
 ```
 
-Google Play 商店审核中
+Chrome 商店审核中
 
 提供 [chrome-color-picker.crx](./demo/chrome-color-picker.crx)
 
