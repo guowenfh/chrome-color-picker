@@ -11,6 +11,8 @@ yarn run build # 打包
 yarn run lint  # 代码风格检查
 ```
 
+Google Play 商店审核中
+
 页面截图
 
 1.弹出层
