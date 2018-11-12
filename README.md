@@ -13,6 +13,8 @@ yarn run lint  # 代码风格检查
 
 Google Play 商店审核中
 
+提供 [chrome-color-picker.crx](./demo/chrome-color-picker.crx)
+
 页面截图
 
 1.弹出层
