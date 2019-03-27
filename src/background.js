@@ -1,8 +1,11 @@
 // import store from './store'
 import { sendMessageToContentScript, captureVisibleTab } from './common'
-
+let colorPickerMenus
 //-------------------- 右键菜单演示 ------------------------//
-chrome.contextMenus.create({
+if (colorPickerMenus) {
+  chrome.contextMenus.remove('color-picker-Menus-1')
+}
+colorPickerMenus = chrome.contextMenus.create({
   title: '页面取色器',
   id: 'color-picker-Menus-1'
 })
@@ -13,10 +16,10 @@ chrome.contextMenus.onClicked.addListener(function(info) {
       sendMessageToContentScript(
         { cmd: 'color-picker-open', data: { src: image } },
         function(/* eslint-disable */ response) {
-                  console.log('-----发送 color-picker-open')
-              }
-          )
-      })
+          console.log('-----发送 color-picker-open')
+        }
+      )
+    })
   }
 })
 
@@ -36,5 +39,18 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     sendResponse(value)
     return
   }
+})
 
+chrome.commands.onCommand.addListener(function(command) {
+  if(command === 'toggle-color-picker'){
+    captureVisibleTab().then(image => {
+      sendMessageToContentScript(
+        { cmd: 'color-picker-open', data: { src: image } },
+        function(/* eslint-disable */ response) {
+          console.log('-----发送 color-picker-open')
+        }
+      )
+    })
+    return
+  }
 })

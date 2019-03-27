@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "chrome-color-picker",
-  "version": "2019.03.0327",
+  "version": "1.0.0",
   "description": "一款 chrome 调试器风格的取色器插件 ",
   "icons": {
     "16": "icons/16.png",
@@ -17,25 +17,22 @@
     "contextMenus",
     "*://*/*"
   ],
-  "commands": {
-    "toggle-color-picker": {
-      "suggested_key": {
-        "default": "Alt+Shift+A",
-        "mac": "Alt+Shift+A"
-      },
-      "description": "快捷取色"
-    }
-  },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content_scripts/content-script.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content_scripts/content-script.js"
+      ],
       "run_at": "document_start"
     }
   ],
   "background": {
-    "scripts": ["background.js"],
-    "persistent": true
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": false
   },
   "browser_action": {
     "default_popup": "popup/popup.html",

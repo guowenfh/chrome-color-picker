@@ -1,25 +1,26 @@
 <template>
   <div :style="wrapStyle" id="color-picker-wrap" ref="pickWrap">
     <div :style="position" v-if="isInit">
-      <table :style="rgbaArea">
-        <tr
+      <div :style="rgbaArea">
+        <div
           v-for="(item, index) in matrix"
           :key="'label' + index"
-          style="display:flex;"
+          style="display:flex;box-sizing: boder-box;"
         >
-          <td
+          <div
             v-for="xyItem in item"
             :key="xyItem.x + '-' + xyItem.y"
             v-bind:style="{
+              boxSizing: 'boder-box',
               backgroundColor: xyItem.backgroundColor,
-              height: '8px',
-              width: '8px',
+              height: '10px',
+              width: '10px',
               boxShadow: `0 0px 0px 1px ${xyItem.isActive ? 'red' : '#ddd'}`,
               zIndex: `${xyItem.isActive ? 1 : 0}`
             }"
           />
-        </tr>
-      </table>
+        </div>
+      </div>
 
       <input
         type="text"
@@ -30,7 +31,20 @@
           marginTop: '12px',
           width: '110px',
           borderRadius: '4px',
-          border: '1px solid #ddd'
+          border: '1px solid #ddd',
+          boxSizing: 'border-box',
+          fontVariant: 'tabular-nums',
+          listStyle: 'none',
+          position: 'relative',
+          display: 'inline-block',
+          height: '24px',
+          color: 'rgba(0,0,0,.65)',
+          fontSize: '16px',
+          lineHeight: '1.5',
+          backgroundColor: '#fff',
+          backgroundImage: 'none',
+          transition: 'all .3s',
+          outline: 'none'
         }"
       />
       <span
@@ -119,6 +133,7 @@ export default {
         zIndex: 1111
       },
       rgbaArea: {
+        boxSizing: 'boder-box',
         pointerEvents: 'none',
         borderRadius: '50%',
         overflow: 'hidden',
@@ -136,7 +151,70 @@ export default {
     }
   },
   computed: {},
+  destroyed() {
+    this.close()
+  },
+  mounted() {
+    // 接收来自后台的消息
+    this.onMessage()
+  },
   methods: {
+    /**
+     * 事件监听，接受来自 右键菜单等地方的事件
+     */
+    onMessage() {
+      chrome.runtime.onMessage.addListener(
+        async (request, sender, sendResponse) => {
+          sendResponse('我收到你的消息了：' + JSON.stringify(request))
+          if (request.cmd == 'color-picker-close') {
+            this.close()
+            return
+          }
+          if (request.cmd == 'color-picker-open') {
+            // 如果是已经初始化过，直接返回
+            if (this.isInit) return this.close()
+            // 鼠标手形
+            document.body.cursor = 'wait'
+            // 加载图片
+            const img = await new Promise(resolve =>
+              loadImage(request.data.src, resolve)
+            )
+            // 计算图片实际的大小
+            this.imgStyles = {
+              height: Math.floor(img.height / window.devicePixelRatio),
+              width: Math.floor(img.width / window.devicePixelRatio)
+            }
+            // 插入图片
+            img.id = 'color-picker-image'
+            img.style = `margin: 0px;padding: 0px;overflow: hidden;max-width: none !important;max-height: none !important;visibility: visible;width: ${
+              this.imgStyles.width
+            }px;height: auto;`
+
+            this.$refs.pickWrap.appendChild(img)
+            this.$pickImage = img
+
+            // 渲染一个等高的canvas
+            this.rednerCanvas()
+            this.wrapStyle.height = `${this.imgStyles.height}px`
+            this.wrapStyle.width = `${this.imgStyles.width}px`
+            this.wrapStyle.display = 'block'
+            this.ctx.drawImage(
+              img,
+              0,
+              0,
+              this.imgStyles.width,
+              this.imgStyles.height
+            )
+            // 添加一个鼠标移动的事件，点击的事件
+            document.addEventListener('mousemove', this.mousemove)
+            this.$pickImage.addEventListener('click', this.click)
+            window.addEventListener('keyup', this.keyup)
+            document.body.style = `cursor:${this.cursor} overflow: hidden;`
+            this.isInit = true
+          }
+        }
+      )
+    },
     rednerCanvas() {
       this.$canvas = document.createElement('canvas')
       this.ctx = this.$canvas.getContext('2d')
@@ -177,6 +255,9 @@ export default {
         })
       })
     }, */
+    /**
+     * 鼠标移动，实时获取鼠标位置所在的点
+     */
     mousemove(ev) {
       ev.stopPropagation()
       requestAnimFrame(() => {
@@ -211,6 +292,9 @@ export default {
         })
       })
     },
+    /**
+     * 点击事件， 代表选中状态，
+     */
     async click(ev) {
       if (!this.showChoseBtn) {
         this.showChoseBtn = true
@@ -277,57 +361,7 @@ export default {
       if (ev.keyCode === 27) {
         this.close()
       }
-    },
-
-    onMessage() {
-      chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        sendResponse('我收到你的消息了：' + JSON.stringify(request))
-        if (request.cmd == 'color-picker-close') {
-          console.error('-------')
-          this.close()
-          return
-        }
-        if (request.cmd == 'color-picker-open') {
-          if (this.isInit) return
-          document.body.cursor = 'wait'
-          loadImage(request.data.src, img => {
-            this.imgStyles = {
-              height: Math.floor(img.height / window.devicePixelRatio),
-              width: Math.floor(img.width / window.devicePixelRatio)
-            }
-            img.id = 'color-picker-image'
-            img.style = `margin: 0px;padding: 0px;overflow: hidden;max-width: none !important;max-height: none !important;visibility: visible;width: ${
-              this.imgStyles.width
-            }px;height: auto;`
-            this.$refs.pickWrap.appendChild(img)
-            this.$pickImage = img
-            this.rednerCanvas()
-            this.wrapStyle.height = `${this.imgStyles.height}px`
-            this.wrapStyle.width = `${this.imgStyles.width}px`
-            this.wrapStyle.display = 'block'
-            this.ctx.drawImage(
-              img,
-              0,
-              0,
-              this.imgStyles.width,
-              this.imgStyles.height
-            )
-            document.addEventListener('mousemove', this.mousemove)
-            this.$pickImage.addEventListener('click', this.click)
-            window.addEventListener('keyup', this.keyup)
-            document.body.style = `cursor:${this.cursor} overflow: hidden;`
-            this.isInit = true
-          })
-        }
-      })
     }
-  },
-  destroyed() {
-    this.close()
-  },
-  mounted() {
-    // 接收来自后台的消息
-    this.onMessage()
   }
 }
 </script>

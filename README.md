@@ -2,7 +2,9 @@
 
 使用 @vue/cli3 + vue-cli-plugin-browser-extension + vue-color + ant-design-vue 驱动的 chrome 调试器风格的取色器插件。
 
-## Project setup
+Chrome 商店 已上架 地址 :[chrome-color-picker](https://chrome.google.com/webstore/detail/chrome-color-picker/ojaclcbknieckfcapcbifaijoocfmpaj?hl=zh-CN)
+
+## 项目开发
 
 ```
 yarn install
@@ -11,9 +13,9 @@ yarn run build # 打包
 yarn run lint  # 代码风格检查
 ```
 
-Chrome 商店审核中
+项目介绍
 
-提供 [chrome-color-picker.crx](./demo/chrome-color-picker.crx)
+使用 Alt+Shift+A 可以快捷呼出/关闭取色器
 
 页面截图
 
@@ -28,3 +30,9 @@ Chrome 商店审核中
 3.移动取色器
 
 ![active](./demo/active.png)
+
+
+change log：
+
+1.0.0 ：发布到 chrome 商店
+1.1.0 ：添加 取色 键盘快捷方式 Alt+Shift+A
