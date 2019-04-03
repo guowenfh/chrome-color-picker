@@ -171,109 +171,94 @@ export default {
             return
           }
           if (request.cmd == 'color-picker-open') {
-            // 如果是已经初始化过，直接返回
-            if (this.isInit) return this.close()
-            // 鼠标手形
-            document.body.cursor = 'wait'
-            // 加载图片
-            const img = await new Promise(resolve =>
-              loadImage(request.data.src, resolve)
-            )
-            // 计算图片实际的大小
-            this.imgStyles = {
-              height: Math.floor(img.height / window.devicePixelRatio),
-              width: Math.floor(img.width / window.devicePixelRatio)
-            }
-            // 插入图片
-            img.id = 'color-picker-image'
-            img.style = `margin: 0px;padding: 0px;overflow: hidden;max-width: none !important;max-height: none !important;visibility: visible;width: ${
-              this.imgStyles.width
-            }px;height: auto;`
-
-            this.$refs.pickWrap.appendChild(img)
-            this.$pickImage = img
-
-            // 渲染一个等高的canvas
-            this.rednerCanvas()
-            this.wrapStyle.height = `${this.imgStyles.height}px`
-            this.wrapStyle.width = `${this.imgStyles.width}px`
-            this.wrapStyle.display = 'block'
-            this.ctx.drawImage(
-              img,
-              0,
-              0,
-              this.imgStyles.width,
-              this.imgStyles.height
-            )
-            // 添加一个鼠标移动的事件，点击的事件
-            document.addEventListener('mousemove', this.mousemove)
-            this.$pickImage.addEventListener('click', this.click)
-            window.addEventListener('keyup', this.keyup)
-            document.body.style = `cursor:${this.cursor} overflow: hidden;`
-            this.isInit = true
+            this.pickerOpen(request)
+            return
           }
         }
       )
     },
-    rednerCanvas() {
+    /**
+     * 打开取色器
+     */
+    async pickerOpen(request) {
+      // 如果是已经初始化过，直接返回，并且关闭
+      if (this.isInit) return this.close()
+      // 鼠标手形
+      document.body.cursor = 'wait'
+      // 1. 加载图片
+      const img = await new Promise(resolve =>
+        loadImage(request.data.src, resolve)
+      )
+      this.imgStyles = {
+        height: Math.floor(img.height / window.devicePixelRatio),
+        width: Math.floor(img.width / window.devicePixelRatio)
+      }
+      // 插入图片
+      img.id = 'color-picker-image'
+      img.style = `margin: 0px;padding: 0px;overflow: hidden;max-width: none !important;max-height: none !important;visibility: visible;width: ${
+        this.imgStyles.width
+      }px;height: auto;`
+
+      this.$refs.pickWrap.appendChild(img)
+      // 2. 插入图片
+      this.$pickImage = img
+
+      // 3.渲染一个等高的canvas
+      this.rednerCanvas(img)
+
+      // 4. 把容器宽高设置为图片一样
+      this.wrapStyle.height = `${this.imgStyles.height}px`
+      this.wrapStyle.width = `${this.imgStyles.width}px`
+      this.wrapStyle.display = 'block'
+      document.body.style = `cursor:${this.cursor} overflow: hidden;`
+
+      // 5. 添加鼠标移动的事件，点击的事件，键盘事件
+      this.$pickImage.addEventListener('click', this.click)
+      this.$pickImage.addEventListener('mousemove', this.mousemove, true)
+      window.addEventListener('keyup', this.keyup, true)
+
+      this.isInit = true
+    },
+    /**
+     * 渲染 canvas
+     */
+    rednerCanvas(img) {
       this.$canvas = document.createElement('canvas')
       this.ctx = this.$canvas.getContext('2d')
       this.$canvas.setAttribute('id', 'color-picker-canvas')
       this.$canvas.width = this.imgStyles.width
       this.$canvas.height = this.imgStyles.height
       this.$canvas.style.display = 'none'
-      // this.$refs.pickWrap.appendChild(this.$canvas)
+
+      this.ctx.drawImage(img, 0, 0, this.imgStyles.width, this.imgStyles.height)
     },
-    // 这个性能差很多
-    /*     mousemove2(ev) {
-      requestAnimFrame(() => {
-        const clientX = ev.clientX
-        const clientY = ev.clientY
-        this.position.top = `${clientY + 10}px`
-        this.position.left = `${clientX + 10}px`
-        this.position.pointerEvents = 'none'
-        const originX = clientX - 5
-        const originY = clientY - 5
-        this.matrix = matrixInitArr.map((yItem, yIndex) => {
-          return matrixInitArr.map((xItem, xIndex) => {
-            const x = originX + xIndex
-            const y = originY + yIndex
-            const isActive = clientX === x && clientY === y
-            const imageData = this.ctx.getImageData(x, y, 1, 1).data
-            const rgba = pixelToRgba(imageData)
-            if (isActive) {
-              this.activeHax = rgbToHex(rgba.r, rgba.g, rgba.b)
-              console.log(rgba.r, rgba.g, rgba.b)
-            }
-            return {
-              x,
-              y,
-              isActive: isActive,
-              backgroundColor: rgba.rgba
-            }
-          })
-        })
-      })
-    }, */
     /**
      * 鼠标移动，实时获取鼠标位置所在的点
      */
     mousemove(ev) {
       ev.stopPropagation()
+      ev.preventDefault()
+      // ev.
       requestAnimFrame(() => {
+        // 鼠标的显示
         const clientX = ev.clientX
         const clientY = ev.clientY
-        this.position.top = `${clientY + 10}px`
-        this.position.left = `${clientX + 10}px`
-        this.position.pointerEvents = 'none'
-
+        // 数据原始 left top 的点
         const originX = clientX - 5
         const originY = clientY - 5
+
         const imageData = this.ctx.getImageData(originX, originY, 11, 11)
         // 参考 https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas
         // 每四个点表示一个 rgba 的值
         const pixel = chunks(imageData.data, 4)
         const rgbarr = chunks(pixel.map(item => pixelToRgba(item)), 11)
+
+        this.position = {
+          ...this.position,
+          top: `${clientY + 10}px`,
+          left: `${clientX + 10}px`,
+          pointerEvents: 'none'
+        }
         this.matrix = rgbarr.map((arr, yIndex) => {
           return arr.map((rgba, xIndex) => {
             const x = originX + xIndex
@@ -292,6 +277,22 @@ export default {
         })
       })
     },
+    async setCache() {
+      const data = await sendMessageToBackground('color-picker-cache-get', {
+        key: 'color-picker-color-list'
+      })
+      let colorList = JSON.parse(data)
+      colorList = colorList === null ? getDefaultColor() : colorList
+      colorList.unshift(this.activeHax)
+      colorList = [...new Set(colorList)]
+      if (colorList.length > 16) {
+        colorList.pop()
+      }
+      await sendMessageToBackground('color-picker-cache-set', {
+        key: 'color-picker-color-list',
+        value: JSON.stringify(colorList)
+      })
+    },
     /**
      * 点击事件， 代表选中状态，
      */
@@ -299,25 +300,15 @@ export default {
       if (!this.showChoseBtn) {
         this.showChoseBtn = true
         this.position.pointerEvents = 'initial'
-        document.removeEventListener('mousemove', this.mousemove)
+        this.$pickImage.removeEventListener('mousemove', this.mousemove, true)
         const $input = document.getElementById('color-picker-input')
         if ($input) {
           $input.focus()
           $input.select()
           try {
-            const data = await sendMessageToBackground(
-              'color-picker-cache-get',
-              {
-                key: 'color-picker-color-list'
-              }
-            )
-            let colorList = JSON.parse(data)
-            colorList = colorList === null ? getDefaultColor() : colorList
-            colorList.unshift(this.activeHax)
-            colorList = [...new Set(colorList)]
-            if (colorList.length > 16) {
-              colorList.pop()
-            }
+            this.setCache()
+
+            // 复制到剪贴板
             const isCopy = await sendMessageToBackground(
               'color-picker-cache-get',
               {
@@ -326,18 +317,14 @@ export default {
             )
             if (JSON.parse(isCopy) !== true) return
             document.execCommand('copy')
-            // localStorage.setItem('color-picker-color-list', JSON.stringify(colorList))
-            await sendMessageToBackground('color-picker-cache-set', {
-              key: 'color-picker-color-list',
-              value: JSON.stringify(colorList)
-            })
           } catch (e) {
             console.error(e)
           }
         }
         return
       }
-      document.addEventListener('mousemove', this.mousemove)
+      this.$pickImage.addEventListener('mousemove', this.mousemove, true)
+      window.addEventListener('keyup', this.keyup, true)
       this.$pickImage.addEventListener('click', this.click)
       this.mousemove(ev)
       this.showChoseBtn = false
@@ -347,8 +334,8 @@ export default {
         this.$pickImage.removeEventListener('click', this.click)
         this.$pickImage.parentNode.removeChild(this.$pickImage)
       }
-      document.removeEventListener('mousemove', this.mousemove)
-      window.removeEventListener('keyup', this.keyup)
+      this.$pickImage.removeEventListener('mousemove', this.mousemove, true)
+      window.removeEventListener('keyup', this.keyup, true)
       this.$canvas = null
       this.ctx = null
       this.showChoseBtn = false
@@ -357,6 +344,8 @@ export default {
       this.wrapStyle.display = 'none'
     },
     keyup(ev) {
+      ev.stopPropagation()
+      ev.preventDefault()
       // ESC 键
       if (ev.keyCode === 27) {
         this.close()

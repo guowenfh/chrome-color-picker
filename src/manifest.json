@@ -11,11 +11,11 @@
   "permissions": [
     "tabs",
     "activeTab",
-    "<all_urls>",
     "clipboardWrite",
     "storage",
     "contextMenus",
-    "*://*/*"
+    "http://*/*",
+    "https://*/*"
   ],
   "commands": {
     "toggle-color-picker": {
