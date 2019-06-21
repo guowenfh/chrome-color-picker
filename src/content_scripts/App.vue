@@ -1,10 +1,10 @@
 <template>
   <div :style="wrapStyle" id="color-picker-wrap" ref="pickWrap">
     <div :style="position" v-if="isInit">
-      <div :style="rgbaArea">
+      <div :style="rgbaAreaStyles">
         <div
           v-for="(item, index) in matrix"
-          :key="'label' + index"
+          :key="'label-' + index"
           style="display:flex;box-sizing: boder-box;"
         >
           <div
@@ -21,46 +21,13 @@
           />
         </div>
       </div>
-
       <input
+        ref="colorInput"
         type="text"
         :value="activeHax"
         id="color-picker-input"
-        :style="{
-          cursor: 'auto',
-          marginTop: '12px',
-          width: '110px',
-          borderRadius: '4px',
-          border: '1px solid #ddd',
-          boxSizing: 'border-box',
-          fontVariant: 'tabular-nums',
-          listStyle: 'none',
-          position: 'relative',
-          display: 'inline-block',
-          height: '24px',
-          color: 'rgba(0,0,0,.65)',
-          fontSize: '16px',
-          lineHeight: '1.5',
-          backgroundColor: '#fff',
-          backgroundImage: 'none',
-          transition: 'all .3s',
-          outline: 'none'
-        }"
+        :style="colorInputStyles"
       />
-      <span
-        v-if="showChoseBtn"
-        :style="{
-          height: '20px',
-          width: '20px',
-          position: 'absolute',
-          top: 0,
-          right: '-7px',
-          cursor: 'pointer',
-          background: `url(${closePng}) center center`,
-          'background-size': '100% 100%'
-        }"
-        @click="close"
-      ></span>
     </div>
   </div>
 </template>
@@ -73,7 +40,6 @@ import {
   getDefaultColor
 } from '../common'
 import crosshairPng from './crosshair.png'
-import closePng from './close2x.png'
 
 var _requestAnimFrame =
   window.requestAnimationFrame ||
@@ -108,18 +74,58 @@ function pixelToRgba(data = []) {
     b
   }
 }
+
 function rgbToHex(r, g, b) {
   return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)
+}
+const colorInputStyles = {
+  cursor: 'auto',
+  marginTop: '12px',
+  width: '110px',
+  borderRadius: '4px',
+  border: '1px solid #ddd',
+  boxSizing: 'border-box',
+  fontVariant: 'tabular-nums',
+  listStyle: 'none',
+  position: 'relative',
+  display: 'inline-block',
+  height: '24px',
+  color: 'rgba(0,0,0,.65)',
+  fontSize: '16px',
+  lineHeight: '1.5',
+  backgroundColor: '#fff',
+  backgroundImage: 'none',
+  transition: 'all .3s',
+  outline: 'none'
+}
+const initRgbaAreaStyles = {
+  boxSizing: 'boder-box',
+  pointerEvents: 'none',
+  borderRadius: '50%',
+  overflow: 'hidden',
+  borderCollapse: 'collapse',
+  boxShadow: '0 0px 0px 1px #4c4c4c'
+}
+const initWrapStyle = {
+  display: 'none',
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  zIndex: 9999
+}
+const initPosition = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  zIndex: 9999
 }
 export default {
   data() {
     return {
+      colorInputStyles: colorInputStyles,
       wrapStyle: {
-        display: 'none',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        zIndex: 9999
+        // 整个选择器的样式
+        ...initWrapStyle
       },
       imgStyles: {
         width: 0,
@@ -127,31 +133,23 @@ export default {
       },
       cursor: `url(${crosshairPng}) 12 12, crosshair;`,
       position: {
-        top: '-1px',
-        left: '-1px',
-        position: 'absolute',
-        zIndex: 1111
+        // 选择器的位置
+        ...initPosition
       },
-      rgbaArea: {
-        boxSizing: 'boder-box',
-        pointerEvents: 'none',
-        borderRadius: '50%',
-        overflow: 'hidden',
-        borderCollapse: 'collapse',
-        boxShadow: '0 0px 0px 1px #4c4c4c'
+      rgbaAreaStyles: {
+        // 颜色选择器的rgb表
+        ...initRgbaAreaStyles
       },
-      closePng: closePng,
       matrix: [], // 显示颜色值的正方形
       showChoseBtn: false,
-      activeHax: 'ffffff',
+      activeHax: '#FFFFFF',
       ctx: null,
       $canvas: null,
       isInit: false,
       $pickImage: null
     }
   },
-  computed: {},
-  destroyed() {
+  beforeDestroy() {
     this.close()
   },
   mounted() {
@@ -255,6 +253,7 @@ export default {
 
         this.position = {
           ...this.position,
+          display: 'block',
           top: `${clientY + 10}px`,
           left: `${clientX + 10}px`,
           pointerEvents: 'none'
@@ -265,7 +264,11 @@ export default {
             const y = originY + yIndex
             const isActive = clientX === x && clientY === y
             if (isActive) {
-              this.activeHax = rgbToHex(rgba.r, rgba.g, rgba.b)
+              this.activeHax = `#${rgbToHex(
+                rgba.r,
+                rgba.g,
+                rgba.b
+              )}`.toUpperCase()
             }
             return {
               x,
@@ -296,39 +299,36 @@ export default {
     /**
      * 点击事件， 代表选中状态，
      */
-    async click(ev) {
-      if (!this.showChoseBtn) {
-        this.showChoseBtn = true
+    async click() {
+      try {
         this.position.pointerEvents = 'initial'
-        this.$pickImage.removeEventListener('mousemove', this.mousemove, true)
-        const $input = document.getElementById('color-picker-input')
-        if ($input) {
-          $input.focus()
-          $input.select()
-          try {
-            this.setCache()
+        this.$refs.colorInput.focus()
+        this.$refs.colorInput.select()
+        this.setCache()
 
-            // 复制到剪贴板
-            const isCopy = await sendMessageToBackground(
-              'color-picker-cache-get',
-              {
-                key: 'color-picker-is-copy'
-              }
-            )
-            if (JSON.parse(isCopy) !== true) return
-            document.execCommand('copy')
-          } catch (e) {
-            console.error(e)
-          }
-        }
-        return
+        window.postMessage(
+          {
+            cmd: 'rc-set-color',
+            type: 'fill',
+            value: this.activeHax
+          },
+          '*'
+        )
+
+        document.execCommand('copy')
+        this.$refs.colorInput.blur()
+        this.activeHax = '颜色复制成功'
+
+        setTimeout(() => {
+          this.close()
+        }, 400)
+      } catch (e) {
+        console.error(e)
       }
-      this.$pickImage.addEventListener('mousemove', this.mousemove, true)
-      window.addEventListener('keyup', this.keyup, true)
-      this.$pickImage.addEventListener('click', this.click)
-      this.mousemove(ev)
-      this.showChoseBtn = false
     },
+    /**
+     * 关闭选择器
+     */
     close() {
       if (this.$pickImage) {
         this.$pickImage.removeEventListener('click', this.click)
@@ -338,11 +338,13 @@ export default {
       window.removeEventListener('keyup', this.keyup, true)
       this.$canvas = null
       this.ctx = null
-      this.showChoseBtn = false
       this.isInit = false
       document.body.style = ''
       this.wrapStyle.display = 'none'
     },
+    /**
+     * 键盘事件 如果按下 ESC 那么就关闭
+     */
     keyup(ev) {
       ev.stopPropagation()
       ev.preventDefault()

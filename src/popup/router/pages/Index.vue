@@ -14,10 +14,6 @@
         ></div>
       </div>
     </div>
-    <div class="end">
-      <div style="font-size: 12px;">开启页面取色复制到剪贴板</div>
-      <a-switch :checked="isCopy" @change="onChange" />
-    </div>
   </div>
 </template>
 
@@ -36,7 +32,6 @@ export default {
   data() {
     return {
       colors: '#000000',
-      isCopy: false,
       $picker: null,
       isStartPicker: false,
       colorList: []
@@ -48,14 +43,17 @@ export default {
     }
   },
   mounted() {
-    this.initPicker()
     this.initLocalSetting()
+    this.$nextTick(() => {
+      this.initPicker()
+    })
   },
   methods: {
+    /**
+     * 初始化颜色列表
+     */
     initLocalSetting() {
       try {
-        const isCopy = localStorage.getItem('color-picker-is-copy')
-        this.isCopy = JSON.parse(isCopy) === true
         const colorList =
           JSON.parse(localStorage.getItem('color-picker-color-list')) ||
           getDefaultColor()
@@ -70,6 +68,9 @@ export default {
     fillColor(clickColor) {
       this.colors = clickColor
     },
+    /**
+     * 吸管 的 svg
+     */
     getSvgHtml() {
       return `<svg width="12px" height="12px" viewBox="0 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
@@ -80,40 +81,37 @@ export default {
         </g>
       </svg>`
     },
+    /**
+     * 初始化一个吸管工具到选择器中去
+     */
     initPicker() {
       const $strawWrap = document.querySelector('.vc-chrome-controls')
       if (!$strawWrap) return
+      console.error(this.isStartPicker)
       $strawWrap.style.paddingLeft = '25px'
       $strawWrap.style.position = 'relative'
       this.$picker = document.createElement('div')
       this.$picker.style = 'position:absolute;top:5px;left:5px;cursor: pointer;'
       this.$picker.innerHTML = this.getSvgHtml()
       $strawWrap.appendChild(this.$picker)
-      this.$picker.addEventListener('click', this.click)
+      this.$picker.addEventListener('click', this.pickerClick)
     },
-    onChange() {
-      this.isCopy = !this.isCopy
-      localStorage.setItem('color-picker-is-copy', JSON.stringify(this.isCopy))
-    },
-    click() {
+    /**
+     * 点击吸管工具创建 网页内容中的真正的取色器
+     */
+    pickerClick() {
       this.isStartPicker = !this.isStartPicker
       this.$picker.innerHTML = this.getSvgHtml()
       if (this.isStartPicker) {
-        captureVisibleTab().then(image => {
+        return captureVisibleTab().then(image => {
           sendMessageToContentScript(
             { cmd: 'color-picker-open', data: { src: image } },
-            function(/* eslint-disable */ response) {
-                      console.log('-----发送 color-picker-open')
-                      window.close()
-                  }
-              )
-          })
-      } else{
-          sendMessageToContentScript({ cmd: 'color-picker-close' }, function(
-              /* eslint-disable */ response
-          ) {
-              console.log('-----发送 color-picker-close')
-          })
+            () => {
+              console.log('-----发送 color-picker-open')
+              window.close()
+            }
+          )
+        })
       }
     }
   }
@@ -130,7 +128,7 @@ p {
   justify-content: space-between;
 }
 .color-list {
-  padding: 10px 0px 0px 10px;
+  padding: 20px 0px 0px 10px;
   border-top: 1px solid rgb(238, 238, 238);
   display: flex;
   flex-wrap: wrap;
@@ -147,14 +145,6 @@ p {
   cursor: pointer;
   border-radius: 3px;
   box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 0px 1px inset;
-}
-.end {
-  border-top: 1px solid #ddd;
-
-  display: flex;
-  justify-content: space-between;
-  padding: 5px 10px;
-  align-items: center;
 }
 </style>
 <style>
