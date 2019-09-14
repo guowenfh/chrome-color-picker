@@ -1,6 +1,6 @@
 # chrome-color-picker
 
-使用 @vue/cli3 + vue-cli-plugin-browser-extension + vue-color + ant-design-vue 驱动的 chrome 调试器风格的取色器插件。
+使用 @vue/cli3 + vue-cli-plugin-browser-extension + vue-color 驱动的 chrome 调试器风格的取色器插件。
 
 Chrome 商店 已上架 地址 :[chrome-color-picker](https://chrome.google.com/webstore/detail/chrome-color-picker/ojaclcbknieckfcapcbifaijoocfmpaj?hl=zh-CN)
 
@@ -30,7 +30,6 @@ yarn run lint  # 代码风格检查
 3.移动取色器
 
 ![active](./demo/active.png)
-
 
 change log：
 

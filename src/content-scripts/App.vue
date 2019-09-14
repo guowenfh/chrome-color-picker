@@ -245,9 +245,11 @@ export default {
         const originX = clientX - 5
         const originY = clientY - 5
 
-        const imageData = this.ctx.getImageData(originX, originY, 11, 11)
+        const imageData =
+          this.ctx && this.ctx.getImageData(originX, originY, 11, 11)
         // 参考 https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas
         // 每四个点表示一个 rgba 的值
+        if (!imageData) return
         const pixel = chunks(imageData.data, 4)
         const rgbarr = chunks(pixel.map(item => pixelToRgba(item)), 11)
 

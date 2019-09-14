@@ -22,7 +22,7 @@ import {
   sendMessageToContentScript,
   getDefaultColor,
   captureVisibleTab
-} from '../../../common.js'
+} from '../common'
 import { Chrome } from 'vue-color'
 // 主动发送消息给后台
 export default {

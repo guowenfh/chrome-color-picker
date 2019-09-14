@@ -4,9 +4,9 @@ module.exports = {
       entry: 'src/popup/popup.js',
       title: 'Popup'
     },
-    'standalone/standalone': {
-      entry: 'src/standalone/standalone.js',
-      filename: 'app.html',
+    popup: {
+      template: 'public/browser-extension.html',
+      entry: './src/popup/main.js',
       title: 'chrome-color-picker'
     }
   },
@@ -28,9 +28,7 @@ module.exports = {
         },
         contentScripts: {
           entries: {
-            'content_scripts/content-script': [
-              'src/content_scripts/content-script.js'
-            ]
+            'content-script': ['src/content-scripts/content-script.js']
           }
         }
       }

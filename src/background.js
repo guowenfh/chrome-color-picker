@@ -1,13 +1,11 @@
 // import store from './store'
 import { sendMessageToContentScript, captureVisibleTab } from './common'
-let colorPickerMenus
-//-------------------- 右键菜单演示 ------------------------//
-if (colorPickerMenus) {
-  chrome.contextMenus.remove('color-picker-Menus-1')
-}
-colorPickerMenus = chrome.contextMenus.create({
-  title: '页面取色器',
-  id: 'color-picker-Menus-1'
+
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    title: '页面取色器',
+    id: 'color-picker-Menus-1'
+  })
 })
 
 chrome.contextMenus.onClicked.addListener(function(info) {

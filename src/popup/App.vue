@@ -1,17 +1,13 @@
 <template>
-  <div><router-view></router-view></div>
+  <ColorPicker />
 </template>
 
 <script>
+import ColorPicker from './ColorPicker'
 export default {
-  data() {
-    return {}
-  }
+  name: 'App',
+  components: { ColorPicker }
 }
 </script>
 
-<style>
-html {
-  height: 320px;
-}
-</style>
+<style></style>

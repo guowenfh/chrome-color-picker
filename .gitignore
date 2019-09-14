@@ -31,3 +31,5 @@ yarn-error.log*
 *.pub
 *.zip
 /dist-zip
+
+/artifacts
