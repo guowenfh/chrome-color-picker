@@ -85,16 +85,20 @@ export default {
      * 初始化一个吸管工具到选择器中去
      */
     initPicker() {
-      const $strawWrap = document.querySelector('.vc-chrome-controls')
-      if (!$strawWrap) return
-      console.error(this.isStartPicker)
-      $strawWrap.style.paddingLeft = '25px'
-      $strawWrap.style.position = 'relative'
-      this.$picker = document.createElement('div')
-      this.$picker.style = 'position:absolute;top:5px;left:5px;cursor: pointer;'
-      this.$picker.innerHTML = this.getSvgHtml()
-      $strawWrap.appendChild(this.$picker)
-      this.$picker.addEventListener('click', this.pickerClick)
+      try {
+        const $strawWrap = document.querySelector('.vc-chrome-controls')
+        if (!$strawWrap) return
+        $strawWrap.style.paddingLeft = '25px'
+        $strawWrap.style.position = 'relative'
+        this.$picker = document.createElement('div')
+        this.$picker.style =
+          'position:absolute;top:5px;left:5px;cursor: pointer;'
+        this.$picker.innerHTML = this.getSvgHtml()
+        $strawWrap.appendChild(this.$picker)
+        this.$picker.addEventListener('click', this.pickerClick)
+      } catch (error) {
+        console.error(error)
+      }
     },
     /**
      * 点击吸管工具创建 网页内容中的真正的取色器
