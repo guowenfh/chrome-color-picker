@@ -3,11 +3,11 @@
 </template>
 
 <script>
-import ColorPicker from "./ColorPicker";
+import ColorPicker from './ColorPicker'
 export default {
-  name: "App",
+  name: 'App',
   components: { ColorPicker }
-};
+}
 </script>
 
 <style>
