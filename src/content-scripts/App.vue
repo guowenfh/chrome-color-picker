@@ -193,9 +193,7 @@ export default {
       }
       // 插入图片
       img.id = 'color-picker-image'
-      img.style = `margin: 0px;padding: 0px;overflow: hidden;max-width: none !important;max-height: none !important;visibility: visible;width: ${
-        this.imgStyles.width
-      }px;height: auto;`
+      img.style = `margin: 0px;padding: 0px;overflow: hidden;max-width: none !important;max-height: none !important;visibility: visible;width: ${this.imgStyles.width}px;height: auto;`
 
       this.$refs.pickWrap.appendChild(img)
       // 2. 插入图片
@@ -251,7 +249,10 @@ export default {
         // 每四个点表示一个 rgba 的值
         if (!imageData) return
         const pixel = chunks(imageData.data, 4)
-        const rgbarr = chunks(pixel.map(item => pixelToRgba(item)), 11)
+        const rgbarr = chunks(
+          pixel.map(item => pixelToRgba(item)),
+          11
+        )
 
         this.position = {
           ...this.position,
@@ -288,7 +289,11 @@ export default {
       })
       let colorList = JSON.parse(data)
       colorList = colorList === null ? getDefaultColor() : colorList
-      colorList.unshift(this.activeHax)
+      colorList.unshift(
+        this.activeHax.includes('#')
+          ? this.activeHax.split('#')[1]
+          : this.activeHax
+      )
       colorList = [...new Set(colorList)]
       if (colorList.length > 16) {
         colorList.pop()
@@ -306,7 +311,6 @@ export default {
         this.position.pointerEvents = 'initial'
         this.$refs.colorInput.focus()
         this.$refs.colorInput.select()
-        this.setCache()
 
         window.postMessage(
           {
@@ -316,7 +320,7 @@ export default {
           },
           '*'
         )
-
+        await this.setCache()
         document.execCommand('copy')
         this.$refs.colorInput.blur()
         this.activeHax = '颜色复制成功'
