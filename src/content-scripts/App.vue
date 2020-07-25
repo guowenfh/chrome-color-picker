@@ -146,7 +146,8 @@ export default {
       ctx: null,
       $canvas: null,
       isInit: false,
-      $pickImage: null
+      $pickImage: null,
+      currPosition: {} // 当前鼠标坐标
     }
   },
   beforeDestroy() {
@@ -211,6 +212,7 @@ export default {
       // 5. 添加鼠标移动的事件，点击的事件，键盘事件
       this.$pickImage.addEventListener('click', this.click)
       this.$pickImage.addEventListener('mousemove', this.mousemove, true)
+      window.addEventListener('keydown', this.keydown, true)
       window.addEventListener('keyup', this.keyup, true)
 
       this.isInit = true
@@ -235,51 +237,57 @@ export default {
       ev.stopPropagation()
       ev.preventDefault()
       // ev.
-      requestAnimFrame(() => {
-        // 鼠标的显示
-        const clientX = ev.clientX
-        const clientY = ev.clientY
-        // 数据原始 left top 的点
-        const originX = clientX - 5
-        const originY = clientY - 5
+      // 缓存当前的位置信息 方便修改需要
+      this.currPosition = {
+        clientX: ev.clientX,
+        clientY: ev.clientY
+      }
+      requestAnimFrame(this.generatePosition.bind(this, this.currPosition))
+    },
+    /**
+     * 根据当前鼠标坐标拿到完整位置信息
+     */
+    generatePosition({ clientX, clientY }) {
+      // 数据原始 left top 的点
+      const originX = clientX - 5
+      const originY = clientY - 5
 
-        const imageData =
-          this.ctx && this.ctx.getImageData(originX, originY, 11, 11)
-        // 参考 https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas
-        // 每四个点表示一个 rgba 的值
-        if (!imageData) return
-        const pixel = chunks(imageData.data, 4)
-        const rgbarr = chunks(
-          pixel.map(item => pixelToRgba(item)),
-          11
-        )
+      const imageData =
+        this.ctx && this.ctx.getImageData(originX, originY, 11, 11)
+      // 参考 https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas
+      // 每四个点表示一个 rgba 的值
+      if (!imageData) return
+      const pixel = chunks(imageData.data, 4)
+      const rgbarr = chunks(
+        pixel.map(item => pixelToRgba(item)),
+        11
+      )
 
-        this.position = {
-          ...this.position,
-          display: 'block',
-          top: `${clientY + 10}px`,
-          left: `${clientX + 10}px`,
-          pointerEvents: 'none'
-        }
-        this.matrix = rgbarr.map((arr, yIndex) => {
-          return arr.map((rgba, xIndex) => {
-            const x = originX + xIndex
-            const y = originY + yIndex
-            const isActive = clientX === x && clientY === y
-            if (isActive) {
-              this.activeHax = `#${rgbToHex(
-                rgba.r,
-                rgba.g,
-                rgba.b
-              )}`.toUpperCase()
-            }
-            return {
-              x,
-              y,
-              isActive: isActive,
-              backgroundColor: rgba.rgba
-            }
-          })
+      this.position = {
+        ...this.position,
+        display: 'block',
+        top: `${clientY + 10}px`,
+        left: `${clientX + 10}px`,
+        pointerEvents: 'none'
+      }
+      this.matrix = rgbarr.map((arr, yIndex) => {
+        return arr.map((rgba, xIndex) => {
+          const x = originX + xIndex
+          const y = originY + yIndex
+          const isActive = clientX === x && clientY === y
+          if (isActive) {
+            this.activeHax = `#${rgbToHex(
+              rgba.r,
+              rgba.g,
+              rgba.b
+            )}`.toUpperCase()
+          }
+          return {
+            x,
+            y,
+            isActive: isActive,
+            backgroundColor: rgba.rgba
+          }
         })
       })
     },
@@ -341,12 +349,45 @@ export default {
         this.$pickImage.parentNode.removeChild(this.$pickImage)
       }
       this.$pickImage.removeEventListener('mousemove', this.mousemove, true)
+      window.removeEventListener('keydown', this.keydown, true)
       window.removeEventListener('keyup', this.keyup, true)
       this.$canvas = null
       this.ctx = null
       this.isInit = false
       document.body.style = ''
       this.wrapStyle.display = 'none'
+    },
+    /**
+     * 键盘事件 按下 上下左右移动键 按像素移动待取色的像素点
+     */
+    keydown(ev) {
+      ev.stopPropagation()
+      ev.preventDefault()
+      const { clientX, clientY } = this.currPosition
+      let newClientX = clientX,
+        newClientY = clientY
+      // 37 left 38 up 39 right 40 down
+      switch (ev.keyCode) {
+        case 37:
+          newClientX--
+          break
+        case 38:
+          newClientY++
+          break
+        case 39:
+          newClientX++
+          break
+        case 40:
+          newClientY--
+          break
+        default:
+          break
+      }
+      this.currPosition = {
+        clientX: newClientX,
+        clientY: newClientY
+      }
+      this.generatePosition(this.currPosition)
     },
     /**
      * 键盘事件 如果按下 ESC 那么就关闭
