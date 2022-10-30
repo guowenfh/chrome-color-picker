@@ -1,43 +1,68 @@
 {
   "name": "chrome-color-picker",
-  "version": "1.5.0",
+  "displayName": "Chrome Color Picker",
+  "version": "2.0.0",
   "private": true,
+  "packageManager": "pnpm@7.8.0",
+  "description": "A chrome debugger style color picker plugin",
   "scripts": {
-    "serve": "vue-cli-service build --mode development --watch",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
-  },
-  "dependencies": {
-    "vue": "^2.6.10",
-    "vue-color": "^2.7.0",
-    "vuex": "^3.1.1",
-    "webextension-polyfill": "^0.4.0"
+    "dev": "npm run clear && cross-env NODE_ENV=development run-p dev:*",
+    "dev:prepare": "esno scripts/prepare.ts",
+    "dev:web": "vite",
+    "dev:js": "npm run build:js -- --mode development",
+    "build": "cross-env NODE_ENV=production run-s clear build:web build:prepare build:js",
+    "build:prepare": "esno scripts/prepare.ts",
+    "build:web": "vite build",
+    "build:js": "vite build --config vite.config.content.ts",
+    "pack": "cross-env NODE_ENV=production run-p pack:*",
+    "pack:zip": "rimraf extension.zip && jszip-cli add extension/* -o ./extension.zip",
+    "pack:crx": "crx pack extension -o ./extension.crx",
+    "pack:xpi": "cross-env WEB_EXT_ARTIFACTS_DIR=./ web-ext build --source-dir ./extension --filename extension.xpi --overwrite-dest",
+    "start:chromium": "web-ext run --source-dir ./extension --target=chromium",
+    "start:firefox": "web-ext run --source-dir ./extension --target=firefox-desktop",
+    "clear": "rimraf extension/dist extension/manifest.json extension.*",
+    "lint": "eslint .",
+    "test": "vitest test"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^3.8.0",
-    "@vue/cli-plugin-eslint": "^3.8.0",
-    "@vue/cli-service": "^3.8.4",
-    "@vue/eslint-config-prettier": "^5.0.0",
-    "babel-eslint": "^10.0.2",
-    "babel-plugin-import": "^1.12.0",
-    "eslint": "^6.4.0",
-    "eslint-plugin-prettier": "^3.1.0",
-    "eslint-plugin-vue": "^5.2.2",
-    "husky": "^3.0.5",
-    "imports-loader": "^0.8.0",
-    "lint-staged": "^9.2.5",
-    "vue-cli-plugin-browser-extension": "^0.22.4",
-    "vue-template-compiler": "^2.6.10"
+    "@antfu/eslint-config": "^0.27.0",
+    "@ffflorian/jszip-cli": "^3.1.6",
+    "@iconify/json": "^2.1.119",
+    "@rollup/plugin-replace": "^5.0.1",
+    "@types/fs-extra": "^9.0.13",
+    "@types/node": "^18.8.3",
+    "@types/webextension-polyfill": "^0.9.1",
+    "@typescript-eslint/eslint-plugin": "^5.39.0",
+    "@unocss/reset": "^0.45.29",
+    "@vitejs/plugin-vue": "^3.1.2",
+    "@vue/compiler-sfc": "^3.2.40",
+    "@vue/test-utils": "^2.1.0",
+    "@vueuse/core": "^9.3.0",
+    "chokidar": "^3.5.3",
+    "cross-env": "^7.0.3",
+    "crx": "^5.0.1",
+    "eslint": "^8.25.0",
+    "esno": "^0.16.3",
+    "fs-extra": "^10.1.0",
+    "jsdom": "^20.0.1",
+    "kolorist": "^1.6.0",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.8.4",
+    "unocss": "^0.45.29",
+    "unplugin-auto-import": "^0.11.2",
+    "unplugin-icons": "^0.14.11",
+    "unplugin-vue-components": "^0.22.8",
+    "vite": "^3.1.6",
+    "vitest": "^0.24.0",
+    "vue": "^3.2.40",
+    "vue-demi": "^0.13.11",
+    "web-ext": "^7.2.0",
+    "webext-bridge": "^5.0.5",
+    "webextension-polyfill": "^0.10.0"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "src/**/**.{js,vue}": [
-      "vue-cli-service lint --fix",
-      "git add"
-    ]
+  "dependencies": {
+    "@ckpack/vue-color": "^1.1.9",
+    "copy-to-clipboard": "^3.3.2"
   }
 }
