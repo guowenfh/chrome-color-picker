@@ -40,14 +40,14 @@ export async function getManifest() {
       'contextMenus',
       '<all_urls>',
     ],
-    "commands": {
-      "color-picker-start": {
-        "suggested_key": {
-          "default": "Alt+Shift+A",
-          "mac": "Alt+Shift+A"
+    commands: {
+      'color-picker-start': {
+        suggested_key: {
+          windows: 'Alt + Shift + A',
+          mac: 'MacCtrl + Shift + A',
         },
-        "description": "Quick Color Pick-up"
-      }
+        description: 'Quick Color Pick-up',
+      },
     },
     content_scripts: [{
       matches: ['<all_urls>'],

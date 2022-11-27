@@ -7,5 +7,7 @@
   },
   "files.associations": {
     "*.css": "postcss"
-  }
+  },
+  "prettier.embeddedLanguageFormatting": "off",
+  "eslint.format.enable": true
 }

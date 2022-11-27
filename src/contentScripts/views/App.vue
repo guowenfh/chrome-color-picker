@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { onMessage } from 'webext-bridge';
 import copy from 'copy-to-clipboard';
+import { defineProps, ref } from 'vue';
+import { chunks, getDefaultColor, loadImage, pixelToRgba, rgbToHex, setColorList } from '~/composables/utils'
 
-import { onMounted, ref } from 'vue';
-import { loadImage, chunks, pixelToRgba, rgbToHex } from '~/composables/utils';
+const { src } = defineProps(['src'])
 const isInit = ref(false);
 const imageSrc = ref<string>();
 const activeHax = ref<string>();
@@ -23,12 +23,13 @@ function onClose() {
   imageSrc.value = undefined;
   isInit.value = false;
   document.body.style.overflow = defaultBodyStyle.value.overflow;
-  document.body.style.cursor = defaultBodyStyle.value.overflow;
+  document.body.style.cursor = defaultBodyStyle.value.cursor;
   window.removeEventListener('keydown', onKeydown);
 }
 
-function onClick() {
-  copy(activeHax.value)
+async function onClick() {
+  copy(activeHax.value!)
+  await setColorList(activeHax.value!)
   onClose();
 }
 /**
@@ -38,9 +39,8 @@ function onKeydown(ev: KeyboardEvent) {
   ev.stopPropagation();
   ev.preventDefault();
   // ESC 键
-  if (ev.keyCode === 27 || ev.code === 'Escape') {
+  if (ev.keyCode === 27 || ev.code === 'Escape')
     onClose();
-  }
 }
 function renderCanvas(img: CanvasImageSource) {
   $canvas.value = document.createElement('canvas');
@@ -57,19 +57,22 @@ function renderCanvas(img: CanvasImageSource) {
     0,
     0,
     imageStyle.value.width,
-    imageStyle.value.height
+    imageStyle.value.height,
   );
 }
 
 async function onOpen(src: string) {
   // 如果是已经初始化过，直接返回，并且关闭
   if (isInit.value) {
-    close();
+    onClose();
     return;
   }
   // 1. 加载图片
+  const computedStyle = window.getComputedStyle(document.body);
+  defaultBodyStyle.value.overflow = computedStyle.overflow;
+  defaultBodyStyle.value.cursor = computedStyle.cursor;
   // 鼠标手形
-  // document.body.cursor = 'wait';s
+  document.body.style.cursor = 'wait';
   // 图片的渲染
   const image = await loadImage(src);
   imageStyle.value.height = Math.floor(image.height / window.devicePixelRatio);
@@ -79,9 +82,7 @@ async function onOpen(src: string) {
   // 3. 渲染一个等高的 canvas
   renderCanvas(image);
   isInit.value = true;
-  const data = window.getComputedStyle(document.body);
-  defaultBodyStyle.value.overflow = data.overflow;
-  defaultBodyStyle.value.overflow = data.cursor;
+
   window.addEventListener('keydown', onKeydown, true);
   document.body.style.overflow = 'hidden';
   document.body.style.cursor = 'none';
@@ -102,15 +103,16 @@ function onMousemove(event: MouseEvent) {
       originX,
       originY,
       11,
-      11
+      11,
     );
     // 参考 https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas
     // 每四个点表示一个 rgba 的值
-    if (!imageData) return;
+    if (!imageData)
+      return;
     const pixel = chunks(imageData.data as any, 4);
     const rgbArr = chunks(
-      pixel.map((item) => pixelToRgba(item)),
-      11
+      pixel.map(item => pixelToRgba(item)),
+      11,
     );
     positionStyle.value = {
       top: `${clientY - 55}px`,
@@ -126,13 +128,13 @@ function onMousemove(event: MouseEvent) {
           activeHax.value = `#${rgbToHex(
             rgba.r,
             rgba.g,
-            rgba.b
+            rgba.b,
           )}`.toUpperCase();
         }
         return {
           x,
           y,
-          isActive: isActive,
+          isActive,
           backgroundColor: rgba.rgba,
         };
       });
@@ -141,51 +143,54 @@ function onMousemove(event: MouseEvent) {
 }
 
 onMounted(() => {
-  onMessage('color-picker-open', ({ data }) => {
-    const src = (data as any).src;
-    onOpen(src);
-  });
-});
+  if (src)
+    onOpen(src)
+})
+
+// onUnmounted
 </script>
 
 <template>
-  <div class="fixed right-0 top-0 z-99999">
+  <div class="top-0 right-0 z-99999 fixed">
     <div
-      class="fixed right-0 top-0 ccp-wrap"
-      :style="positionStyle"
       v-if="isInit"
+      class="top-0 right-0 fixed ccp-wrap"
+      :style="positionStyle"
     >
       <div class="ccp-area">
         <div
-          class="flex ccp-area-col"
           v-for="(subArr, index) in matrix"
-          :key="'label-' + index"
+          :key="`label-${index}`"
+          class="flex ccp-area-col"
         >
           <div
             v-for="item in subArr"
+            :key="`${item.x}-${item.y}`"
             class="ccp-area-item"
             :style="{
               backgroundColor: item.backgroundColor,
               borderColor: `${item.isActive ? 'red' : '#ddd'}`,
             }"
-            :key="item.x + '-' + item.y"
-          ></div>
+          />
         </div>
       </div>
-      <div class="ccp-active" v-if="!!activeHax">{{ activeHax }}</div>
+      <div v-if="!!activeHax" class="ccp-active">
+        {{ activeHax }}
+      </div>
     </div>
     <img
-      @mousemove="onMousemove"
-      @click="onClick"
       v-if="!!imageSrc"
       :src="imageSrc"
       class="ccp-image"
       :style="{
         width: `${imageStyle.width}px`,
       }"
-    />
+      @mousemove="onMousemove"
+      @click="onClick"
+    >
   </div>
 </template>
+
 <style>
 .ccp-image {
   margin: 0px;

@@ -1,107 +1,69 @@
 import { onMessage, sendMessage } from 'webext-bridge';
 
-import type { Tabs } from 'webextension-polyfill';
-
 // only on dev mode
 if (import.meta.hot) {
   // @ts-expect-error for background HMR
-  import('/@vite/client');
+  import('/@vite/client')
   // load latest content script
-  import('./contentScriptHMR');
+  import('./contentScriptHMR')
 }
-/**
- * 将当前页面截图
- * @returns {Promise<number>}
- */
-async function getCurrentTabId(): Promise<number> {
-  if (previousTabId) {
-    return Promise.resolve(previousTabId);
-  }
-  const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-  return (tabs[0] as any)?.id || 0;
-}
+
 /**
  * 将当前页面截图
  * @returns {Promise<string>}
  */
 async function captureVisibleTab(): Promise<string> {
-  return browser.tabs.captureVisibleTab(undefined, { format: 'png' });
+  return browser.tabs.captureVisibleTab(undefined, { format: 'png' })
 }
 
-async function colorPickerOpen(id?:number) {
+async function colorPickerOpen() {
   try {
-    const image = await captureVisibleTab();
-    let tabId = id
-    if(!tabId) tabId = await getCurrentTabId();
+    const tabId = await getCurrentTabId()
+    const image = await captureVisibleTab()
     sendMessage(
       'color-picker-open',
       { src: image },
-      { context: 'content-script', tabId: tabId }
-    );
-  } catch (error) {
-    console.error('[color-picker-start]', error);
-  }  
+      { context: 'content-script', tabId },
+    )
+  }
+  catch (error) {
+    console.error('[chrome-color-picker]:[color-picker-open]:error', error)
+  }
+}
+
+/**
+ * 将当前页面截图
+ * @returns {Promise<number>}
+ */
+async function getCurrentTabId(): Promise<number> {
+  const tabs = await browser.tabs.query({ active: true, currentWindow: true })
+  return (tabs[0] as any)?.id || 0
 }
 
 browser.runtime.onInstalled.addListener((): void => {
   // eslint-disable-next-line no-console
-  console.log('Extension installed');
+  console.log('[chrome-color-picker]:Extension installed')
   browser.contextMenus.create({
     title: 'Color Picker',
     id: 'chrome-color-picker-menu',
-  });
-});
-
+  })
+})
 browser.contextMenus.onClicked.addListener(async (info, tab) => {
-  if (!tab || !tab.id) return;
-  if (info.menuItemId === 'chrome-color-picker-menu') {
+  if (!tab || !tab.id)
+    return
+  if (info.menuItemId === 'chrome-color-picker-menu')
     await colorPickerOpen()
-  }
-});
-
-let previousTabId = 0;
+})
 
 // communication example: send previous tab title from background page
 // see shim.d.ts for type declaration
-browser.tabs.onActivated.addListener(async ({ tabId }) => {
-  if (!previousTabId) {
-    previousTabId = tabId;
-    return;
-  }
-
-  let tab: Tabs.Tab;
-
-  try {
-    tab = await browser.tabs.get(previousTabId);
-    previousTabId = tabId;
-  } catch {
-    return;
-  }
-
-  // eslint-disable-next-line no-console
-  console.log('previous tab', tab);
-  sendMessage(
-    'tab-prev',
-    { title: tab.title },
-    { context: 'content-script', tabId }
-  );
-});
-
-onMessage('get-current-tab', async () => {
-  try {
-    const tab = await browser.tabs.get(previousTabId);
-    return {
-      title: tab?.title,
-    };
-  } catch {
-    return {
-      title: undefined,
-    };
-  }
-});
-
-
 
 onMessage('color-picker-start', async () => {
+  await colorPickerOpen()
+})
+
+browser.commands.onCommand.addListener(async (command) => {
+  if (command !== 'color-picker-start')
+    return
   await colorPickerOpen()
 });
