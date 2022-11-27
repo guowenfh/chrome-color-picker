@@ -75,6 +75,7 @@ pnpm build
 
 ## 修改
 
+- 2.1.0: 默认使用 eyeDropper API 取色
 - 2.0.0: 升级到 vue3 + vite 
 
 old change log：
