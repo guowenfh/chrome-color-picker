@@ -13,7 +13,7 @@ if (import.meta.hot) {
  * @returns {Promise<string>}
  */
 async function captureVisibleTab(): Promise<string> {
-  return browser.tabs.captureVisibleTab(undefined, { format: 'png' })
+  return browser.tabs.captureVisibleTab(undefined, { format: 'png', quality: 100 })
 }
 
 async function colorPickerOpen() {
