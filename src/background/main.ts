@@ -16,13 +16,19 @@ async function captureVisibleTab(): Promise<string> {
   return browser.tabs.captureVisibleTab(undefined, { format: 'png', quality: 100 })
 }
 
-async function colorPickerOpen() {
+const sourceEnum = {
+  popup: 'screenshot',
+  shortcutKey: 'original',
+  contextMenu: 'original',
+}
+
+async function colorPickerOpen(source: string = sourceEnum.popup) {
   try {
     const tabId = await getCurrentTabId()
     const image = await captureVisibleTab()
     sendMessage(
       'color-picker-open',
-      { src: image },
+      { src: image, source },
       { context: 'content-script', tabId },
     )
   }
@@ -48,22 +54,23 @@ browser.runtime.onInstalled.addListener((): void => {
     id: 'chrome-color-picker-menu',
   })
 })
+// 右键菜单
 browser.contextMenus.onClicked.addListener(async (info, tab) => {
   if (!tab || !tab.id)
     return
   if (info.menuItemId === 'chrome-color-picker-menu')
-    await colorPickerOpen()
+    await colorPickerOpen(sourceEnum.contextMenu)
 })
 
 // communication example: send previous tab title from background page
 // see shim.d.ts for type declaration
 
 onMessage('color-picker-start', async () => {
-  await colorPickerOpen()
+  await colorPickerOpen(sourceEnum.popup)
 })
 
 browser.commands.onCommand.addListener(async (command) => {
   if (command !== 'color-picker-start')
     return
-  await colorPickerOpen()
+  await colorPickerOpen(sourceEnum.shortcutKey)
 });

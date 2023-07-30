@@ -33,7 +33,7 @@ function pickerClick() {
   if (!isStartPicker.value)
     return
   // 通知到 bg 截图，再通过 bg 发送给 content-script
-  sendMessage('color-picker-start', { data: null })
+  sendMessage('color-picker-start', { data: null }, 'background')
   window.close()
 }
 const colorList = useStorageLocal('color-picker-color-list', getDefaultColor(), { listenToStorageChanges: true })

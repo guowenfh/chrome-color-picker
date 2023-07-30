@@ -26,13 +26,16 @@ shadowDOM.appendChild(styleEl)
 shadowDOM.appendChild(root)
 document.body.appendChild(container);
 onMessage('color-picker-open', async ({ data }) => {
-  if ((window as any).EyeDropper) {
+  if ((window as any).EyeDropper && window.AbortController && data.source === 'original') {
     try {
-      const eyeDropper = new (window as any).EyeDropper();
-      const { sRGBHex } = await eyeDropper.open()
-      const hexColor = `#${rgbStringToHex(sRGBHex)}`.toUpperCase()
+      const controller = new AbortController();
+      const signal = controller.signal;
+      const eyeDropper = new (window as any).EyeDropper({ signal });
+      const data = await eyeDropper.open()
+      const hexColor = data.sRGBHex.toUpperCase()
       await setColorList(hexColor)
       copy(hexColor)
+      controller.abort();
     }
     catch (error) {
 
