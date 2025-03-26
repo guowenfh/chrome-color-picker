@@ -75,7 +75,7 @@ pnpm build
 
 ## 修改
 
-- 2.3.0: 升级到 manifest v3
+- 2.4.0: 升级到 manifest v3
 - 2.2.0: 区分场景使用 eyeDropper 与 canvas 取色，修复 eyeDropper 取色时，取色历史记录不正确的问题
 - 2.1.0: 默认使用 eyeDropper API 取色
 - 2.0.0: 升级到 vue3 + vite 
