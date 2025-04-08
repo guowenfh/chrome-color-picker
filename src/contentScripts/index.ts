@@ -3,7 +3,7 @@ import 'uno.css';
 import copy from 'copy-to-clipboard';
 import { createApp } from 'vue';
 import { onMessage } from 'webext-bridge';
-import { rgbStringToHex, setColorList } from '~/composables/utils';
+import { setColorList } from '~/composables/utils';
 
 // eslint-disable-next-line import/order
 import App from './views/App.vue';

@@ -27,7 +27,6 @@ export async function getManifest() {
       128: './assets/icons/128.png',
     },
     permissions: [
-      'tabs',
       'clipboardWrite',
       'storage',
       'activeTab',
@@ -59,7 +58,7 @@ export async function getManifest() {
     // for content script, as browsers will cache them for each reload,
     // we use a background script to always inject the latest version
     // see src/background/contentScriptHMR.ts
-    delete manifest.content_scripts
+    
     manifest.permissions?.push('webNavigation')
 
     // this is required on dev for Vite script to load
